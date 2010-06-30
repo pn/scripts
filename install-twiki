@@ -1,0 +1,47 @@
+#!/bin/bash
+START=`pwd`
+ROOT=/var/www/twiki
+OLD=/root/wiki/var/lib/twiki
+BACKUP=/root/wiki
+#falling back to 4.3.0 becasue of missing CPAN:Unicode::String (SID-00291)
+PKG=TWiki-4.3.0.tgz
+CONF=/root/twiki.conf
+set -u
+set -o errexit
+
+if [ ! "$1" = "upgrade" ]; then
+  rm -rf $ROOT
+  mkdir -p $ROOT
+  tar xfz $PKG -C $ROOT
+  chown -R www-data:www-data $ROOT
+  cp $CONF /etc/apache2/conf.d/
+  cp -p $ROOT/bin/LocalLib.cfg.txt $ROOT/bin/LocalLib.cfg
+  sed -e "s|/absolute/path/to/your/lib|$ROOT/lib|" < $ROOT/bin/LocalLib.cfg.txt > $ROOT/bin/LocalLib.cfg
+  cd $START
+  cp mod_perl_startup.pl /var/www/twiki/tools/mod_perl_startup.pl
+  chmod a+x $_
+  cp $OLD/data/.htpasswd $ROOT/data/
+  /etc/init.d/apache2 restart
+  echo click "http://localhost/twiki/bin/configure"
+  echo perform following steps and press ENTER:
+  echo "* set DefaultUrlHost"
+  echo "* click next"
+  echo "* set configuration password/change password and save"
+  read
+  chmod a-rx $ROOT/bin/configure
+fi
+cd $OLD
+for f in pub/* data/* pub/Main/* data/Main/*; do
+[ ! -e $ROOT/$f ] && cp -ir $f $ROOT/$f || true
+done
+#echo press ENTER && read
+#cp -ua $OLD/pub/* $ROOT/pub/
+#cp -ua $OLD/data/* $ROOT/data/
+which rcs >/dev/null
+find $ROOT/data -name '*,v' -exec rcs -u -M '{}' \; 2>/dev/null
+find $ROOT/pub -name '*,v' -exec rcs -u -M '{}' \; 2>/dev/null
+cd $ROOT/bin
+perl $ROOT/tools/upgrade_emails.pl
+cd $ROOT/bin
+../tools/tick_twiki.pl
+chown -R www-data:www-data $ROOT

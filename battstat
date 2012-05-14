@@ -1,0 +1,8 @@
+#!/bin/bash
+# This script is for usage with xbattbar - a simple battery status for X
+# Usage: xbattbar -s battstat
+battery=$(acpi | cut -f2 -d, | sed 's/^ *//g')
+ac_line=on
+acpi | grep -q -i discharging
+[ $? -eq 0 ] && ac_line=off
+printf "battery=%s\nac_line=%s\n" "$battery" "$ac_line"

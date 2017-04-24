@@ -1,0 +1,1 @@
+sed -e 's/\xc5\xbc/z/g' -e 's/\xc3\xb3/o/g' -e 's/\xc5\x82/l/g' -e 's/\xc4\x85/a/g' -e 's/\xc4\x99/e/g' -e 's/\xc5\xba/z/g' -e 's/\xc4\x87/c/g' -e 's/\xc5\x9b/s/g'
